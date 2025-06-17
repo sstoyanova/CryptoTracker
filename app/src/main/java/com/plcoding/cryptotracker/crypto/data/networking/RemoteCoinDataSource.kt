@@ -1,5 +1,6 @@
 package com.plcoding.cryptotracker.crypto.data.networking
 
+import com.plcoding.cryptotracker.BuildConfig.COIN_API_KEY
 import com.plcoding.cryptotracker.core.data.networking.constructUrl
 import com.plcoding.cryptotracker.core.data.networking.safeCall
 import com.plcoding.cryptotracker.core.domain.util.NetworkError
@@ -20,12 +21,15 @@ import java.time.ZonedDateTime
 
 class RemoteCoinDataSource(
     private val httpClient: HttpClient
-): CoinDataSource {
+) : CoinDataSource {
 
     override suspend fun getCoins(): Result<List<Coin>, NetworkError> {
         return safeCall<CoinsResponseDto> {
             httpClient.get(
-                urlString = constructUrl("/assets")
+                urlString = constructUrl("/assets"),
+                {
+                    parameter("apiKey", COIN_API_KEY)
+                }
             )
         }.map { response ->
             response.data.map { it.toCoin() }
@@ -50,6 +54,7 @@ class RemoteCoinDataSource(
             httpClient.get(
                 urlString = constructUrl("/assets/$coinId/history")
             ) {
+                parameter("apiKey", COIN_API_KEY)
                 parameter("interval", "h6")
                 parameter("start", startMillis)
                 parameter("end", endMillis)
