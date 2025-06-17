@@ -3,6 +3,7 @@
 package com.plcoding.cryptotracker.core.navigation
 
 import android.widget.Toast
+import androidx.activity.result.launch
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
@@ -10,6 +11,7 @@ import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneSca
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -20,6 +22,7 @@ import com.plcoding.cryptotracker.crypto.presentation.coin_list.CoinListAction
 import com.plcoding.cryptotracker.crypto.presentation.coin_list.CoinListEvent
 import com.plcoding.cryptotracker.crypto.presentation.coin_list.CoinListScreen
 import com.plcoding.cryptotracker.crypto.presentation.coin_list.CoinListViewModel
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -30,7 +33,7 @@ fun AdaptiveCoinListDetailPane(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     ObserveAsEvents(events = viewModel.events) { event ->
-        when(event) {
+        when (event) {
             is CoinListEvent.Error -> {
                 Toast.makeText(
                     context,
@@ -42,6 +45,8 @@ fun AdaptiveCoinListDetailPane(
     }
 
     val navigator = rememberListDetailPaneScaffoldNavigator<Any>()
+    val coroutineScope = rememberCoroutineScope()
+
     NavigableListDetailPaneScaffold(
         navigator = navigator,
         listPane = {
@@ -50,11 +55,13 @@ fun AdaptiveCoinListDetailPane(
                     state = state,
                     onAction = { action ->
                         viewModel.onAction(action)
-                        when(action) {
+                        when (action) {
                             is CoinListAction.OnCoinClick -> {
-                                navigator.navigateTo(
-                                    pane = ListDetailPaneScaffoldRole.Detail
-                                )
+                                coroutineScope.launch {
+                                    navigator.navigateTo(
+                                        pane = ListDetailPaneScaffoldRole.Detail
+                                    )
+                                }
                             }
                         }
                     }
